@@ -150,7 +150,7 @@
 \begin{frame}{Tổng quan mô hình khuếch tán}
 	Quá trình khuếch tán gồm hai quá trình:
 	\begin{itemize}
-		\item Quá trình khuếch tán thuận: nhiễu được từ từ thêm vào dữ liệu qua từng bước cho đến khi dữ liệu trở thành nhiễu có phân phối Gaussian tiêu chuẩn
+		\item Quá trình khuếch tán thuận: nhiễu được từ từ thêm vào dữ liệu qua từng bước cho đến khi dữ liệu trở thành nhiễu có phân phối biết trước (thường là phân phối chuẩn tắc)
 		\item Quá trình khuếch tán ngược (quá trình khử nhiễu): sử dụng một mô hình được huấn luyện đảo ngược quá trình thuận (từ nhiễu trở thành dữ liệu)
 	\end{itemize}
 	\begin{figure}[H]
@@ -196,7 +196,7 @@
 			\bold{x}_i^m = \bold{x}_i^{m-1} + \epsilon_i \bold{s}_{\boldsymbol{\theta}^{\ast}} (\bold{x}_i^{m-1}, \sigma_i) + \sqrt{2 \epsilon_i} \bold{z}_i^m, m = 1, 2, \dots, M
 		\end{equation}
 		với $\epsilon_i > 0$ là độ dài bước và $\bold{z}_i^m$ là một biến tuân theo phân phối chuẩn tắc.
-		\ref{eq:2} được lặp lại cho $i=N, N-1, \dots, 1$ với $\bold{x}_N^0 \sim \mathcal{N}(\bold{x} \vert \bold{0}, \sigma_{\max}^2 \bold{I})$ và $\bold{x}_i^0 = \bold{x}_{i+1}^M$ khi $i < N$. Khi $M \rightarrow \infty$ và $\epsilon_i \rightarrow 0$ với mọi $i, \bold{x}_1^M$
+		\ref{eq:2} được lặp lại cho $i=N, N-1, \dots, 1$ với $\bold{x}_N^0 \sim \mathcal{N}(\bold{x} \vert \bold{0}, \sigma_{\max}^2 \bold{I})$ và $\bold{x}_i^0 = \bold{x}_{i+1}^M$ khi $i < N$.
 	\end{itemize}
 \end{frame}
 
@@ -209,7 +209,7 @@
 		\item $p_{\alpha_i}=\mathcal{N}(\bold{x}_i; \sqrt{\alpha_i}\bold{x}_0, (1-\alpha_i)\bold{I})$,
 		với $\alpha_i \vcentcolon = \prod_{j=1}^i (1 - \beta_j)$
 		\item Các mức nhiễu được chọn sao cho $\bold{x}_N$ có phân phối xấp xỉ phân phối chuẩn tắc $\mathcal{N}(\bold{0}, \bold{I})$.
-		\item Quá trình khuếch tán ngược được tham số hóa với $p_{\boldsymbol{\theta}} (\bold{x}_{i-1} \vert \bold{x}_i)=\mathcal{N}\Big(\bold{x}_{i-1}; \dfrac{1}{\sqrt{1-\beta_i}}(\bold{x}_i + \beta_i \bold{s}_{\boldsymbol{\theta}}(\bold{x}_i, i)), \beta_i \bold{I}\Big)$
+		\item Quá trình khuếch tán ngược được tham số hóa với: $p_{\boldsymbol{\theta}} (\bold{x}_{i-1} \vert \bold{x}_i)=\mathcal{N}\Big(\bold{x}_{i-1}; \dfrac{1}{\sqrt{1-\beta_i}}(\bold{x}_i + \beta_i \bold{s}_{\boldsymbol{\theta}}(\bold{x}_i, i)), \beta_i \bold{I}\Big)$
 		
 	\end{itemize}
 \end{frame}
@@ -220,7 +220,7 @@
 		\begin{equation} \label{eq:3}
 			\boldsymbol{\theta}^{\ast} = \underset{\boldsymbol{\theta}}{\mathrm{argmin}} \sum_{i=1}^N (1 - \alpha_i) \mathbb{E}_{p_{\mathrm{data}}(\bold{x})} \mathbb{E}_{p_{\alpha_i (\tilde{\bold{x}} \vert \bold{x})}} \big \lbrack \lVert \bold{s}_{\boldsymbol{\theta}} (\tilde{\bold{x}}, i) - \nabla_{\tilde{\bold{x}}} \log p_{\alpha_i} (\tilde{\bold{x}} \vert \bold{x}) \rVert_2^2 \big \rbrack
 		\end{equation}
-		\item Sau khi thu được mô hình tối ưu $\bold{s}_{\boldsymbol{\theta}^{\ast}}(\bold{x}, i)$, sử dụng công thức ước lượng xích Markov ngược sau đây:
+		\item Sau khi thu được mô hình tối ưu $\bold{s}_{\boldsymbol{\theta}^{\ast}}(\bold{x}, i)$, sử dụng công thức ước lượng xích Markov ngược:
 		\begin{equation} \label{eq:4}
 			\bold{x}_{i-1} = \dfrac{1}{\sqrt{1-\beta_i}} \big( \bold{x}_i + \beta_i \bold{s}_{\boldsymbol{\theta}^{\ast}} (\bold{x}_i, i) \big) + \sqrt{\beta_i} \bold{z}_i, i = N, N-1, \dots, 1
 		\end{equation}
@@ -257,7 +257,7 @@
 		\begin{equation} \label{eq:5}
 			d \bold{x} = \bold{f} (\bold{x}, t) dt + g(t) d \bold{w}
 		\end{equation}
-		ới $\bold{w}$ là một quá trình Wiener chuẩn tắc (hay còn được gọi là chuyển động Brown), $\bold{f}(.,t): \mathbb{R}^d \rightarrow \mathbb{R}^d$ là một hàm vector được gọi là hệ số độ trôi của $\bold{x}(t)$ và $g(.): \mathbb{R} \rightarrow \mathbb{R}$ là một hàm vô hướng được gọi là hệ số khuếch tán của $\bold{x}(t)$.
+		với $\bold{w}$ là một quá trình Wiener chuẩn tắc (hay còn được gọi là chuyển động Brown), $\bold{f}(.,t): \mathbb{R}^d \rightarrow \mathbb{R}^d$ là một hàm vector được gọi là hệ số độ trôi của $\bold{x}(t)$ và $g(.): \mathbb{R} \rightarrow \mathbb{R}$ là một hàm vô hướng được gọi là hệ số khuếch tán của $\bold{x}(t)$.
 	\end{itemize}
 \end{frame}
 
@@ -310,7 +310,7 @@
 		\begin{equation} \label{eq:10}
 			\bold{x}_i = \sqrt{1 - \beta_i} \bold{x}_{i-1} + \sqrt{\beta_i} \bold{z}_{i-1}, i=1,\dots,N
 		\end{equation}
-		\item Khi $N \rightarrow \infty$, phương trình \ref{eq:10} hội tụ về phương trình SDE sau đây:
+		\item Khi $N \rightarrow \infty$, phương trình \ref{eq:10} hội tụ về phương trình SDE:
 		\begin{equation} \label{eq:11}
 			d \bold{x} = \dfrac{1}{2} \beta(t) \bold{x} dt + \sqrt{\beta(t)} d\bold{w}
 		\end{equation}
@@ -322,7 +322,7 @@
 		\item Nhiễu dùng để xáo trộn được dùng trong SMLD và DDPM tương ứng với sự rời rạc hóa của phương trình SDE trong công thức \ref{eq:9} và \ref{eq:11}.
 		\item Phương trình SDE của công thức \ref{eq:9} luôn luôn tạo ra một quá trình với phương sai bùng nổ khi $t \rightarrow \infty$, ta gọi là Variance Exploding (VE) SDE
 		\item Phương trình SDE ở công thức \ref{eq:11} thu được một quá trình với phương sai không đổi, ta gọi là Variance Preserving (VP) SDE
-		\item Ta đề xuất một loại phương trình SDE mới đặc biệt tốt trên độ hợp lý được cho bởi công thức, được gọi là sub-VP SDE:
+		\item Ta đề xuất một loại phương trình SDE mới đặc biệt tốt trên độ hợp lý, được gọi là sub-VP SDE:
 		\begin{equation} \label{eq:12}
 			d \bold{x} = -\dfrac{1}{2} \beta(t) \bold{x} dt + \sqrt{\beta(t) (1-e^{-2\int_{0}^{t} \beta(s)ds} )} d \bold{w}
 		\end{equation}
@@ -341,9 +341,9 @@
 	\end{itemize}
 \end{frame}
 
-\subsection{Bộ lấy mẫu dự đoán - căn chỉnh}
+\subsection{Bộ lấy mẫu dự đoán - hiệu chỉnh}
 
-\begin{frame}{Bộ lấy mẫu dự đoán - căn chỉnh}
+\begin{frame}{Bộ lấy mẫu dự đoán - hiệu chỉnh}
 	\begin{itemize}
 		\item Ngoài các bộ giải phương trình SDE bằng phương pháp số, ta có thể tận dụng các tính chất đặc biệt của phương trình SDE đảo ngược thời gian để thu được nghiệm tốt hơn bằng bước hiệu chỉnh.
 		\item Ta có thể tận dụng cách tiếp cận MCMC dựa trên điểm số ví dụ như Langevin MCMC để hiệu chỉnh nghiệm thu đường bằng bộ giải SDE bằng phương pháp số.
@@ -379,6 +379,11 @@
 			\log p_0 (\bold{x}(0)) = \log p_T (\bold{x}(T)) + \int_{0}^{T} \nabla . \tilde{\bold{f}}(\bold{x}(t), t) dt
 		\end{equation}
 		với biến ngẫu nhiên $\bold{x}(t)$ là một hàm của $t$ có thể thu được bằng cách giải dòng xác suất phương trình ODE.
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Tính toán độ hợp lý}
+	\begin{itemize}
 		\item Việc tính $\nabla . \tilde{\bold{f}}_{\bold{\theta}}(\bold{x}, t)$ có chi phí tính toán khá đắt, ta sử dụng ước lượng Skilling - Hutchinson  (ước lượng không chệch) \citep{skilling1989eigenvalues,hutchinson1989stochastic}:
 		\begin{equation} \label{eq:40}
 			\nabla . \tilde{\bold{f}}_{\bold{\theta}}(\bold{x}, t) = \mathbb{E}_{p(\boldsymbol{\epsilon})} \lbrack \boldsymbol{\epsilon}^T \nabla \tilde{\bold{f}}_{\bold{\theta}} (\bold{x}, t) \boldsymbol{\epsilon} \rbrack
@@ -622,7 +627,7 @@
 		\begin{equation*}
 			d \bold{x} = \big \lbrack \bold{f}(\bold{x}, t) - g(t)^2 \nabla_{\bold{x}} \log p_t (\bold{x}) \big \rbrack dt + g(t) d \hat{\bold{w}}
 		\end{equation*}
-		\item \item Để ước lượng $\nabla_{\bold{x}} \log p_t(\bold{x})$, ta có thể huấn luyện một mô hình dựa trên điểm số phụ thuộc vào thời gian $\bold{s}_{\boldsymbol{\theta}}(\bold{x}, t)$ thông qua một tổng quát hóa liên tục từ phương trình \ref{eq:1} và phương trình \ref{eq:3}:
+		\item Để ước lượng $\nabla_{\bold{x}} \log p_t(\bold{x})$, ta có thể huấn luyện một mô hình dựa trên điểm số phụ thuộc vào thời gian $\bold{s}_{\boldsymbol{\theta}}(\bold{x}, t)$ thông qua một tổng quát hóa liên tục từ phương trình \ref{eq:1} và phương trình \ref{eq:3}:
 		\begin{equation*}
 			\boldsymbol{\theta}^{\ast} = \underset{\boldsymbol{\theta}}{\mathrm{argmin}} \mathbb{E}_t \Big \lbrace  \lambda(t) \mathbb{E}_{\bold{x}(0)} \mathbb{E}_{\bold{x}(t) \vert \bold{x}(0)} \big \lbrack \lVert \bold{s}_{\boldsymbol{\theta}} (\bold{x}(t), t) - \nabla_{\bold{x}(t)} \log p_{0t} (\bold{x}(t) \vert \bold{x}(0)) \rVert_2^2 \big \rbrack \Big \rbrace
 		\end{equation*}
