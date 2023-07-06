@@ -166,7 +166,7 @@
 		\item Các kỹ thuật (hàm mục tiêu) để ước lượng điểm số.
 		\item Quá trình lấy mẫu có dạng một vòng lặp làm tăng độ hợp lý của mẫu dữ liệu. Ví dụ:
 		\begin{equation*}
-			\bold{x}_i^m = \bold{x}_i^{m-1} + \epsilon_i \nabla_{\bold{x}_{i-1}} p_{i-1}(\bold{x}_{i-1}) + \sqrt{2 \epsilon_i} \bold{z}_i^m, m = 1, 2, \dots, M
+			\bold{x}_i = \bold{x}_{i-1} + \epsilon_i \nabla_{\bold{x}_{i-1}} p_{i-1}(\bold{x}_{i-1}) + \sqrt{2 \epsilon_i} \bold{z}_i, m = 1, 2, \dots, M
 		\end{equation*}
 	\end{itemize}
 \end{frame}
