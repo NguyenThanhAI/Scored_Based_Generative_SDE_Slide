@@ -166,7 +166,7 @@
 		\item Các kỹ thuật (hàm mục tiêu) để ước lượng điểm số.
 		\item Quá trình lấy mẫu có dạng một vòng lặp làm tăng độ hợp lý của mẫu dữ liệu. Ví dụ:
 		\begin{equation*}
-			\bold{x}_i^m = \bold{x}_i^{m-1} + \epsilon_i \nabla_{\bold{x}_{i-1}} p_{i-1}(\bold{x}_{i-1}) (\bold{x}_i^{m-1}, \sigma_i) + \sqrt{2 \epsilon_i} \bold{z}_i^m, m = 1, 2, \dots, M
+			\bold{x}_i^m = \bold{x}_i^{m-1} + \epsilon_i \nabla_{\bold{x}_{i-1}} p_{i-1}(\bold{x}_{i-1}) + \sqrt{2 \epsilon_i} \bold{z}_i^m, m = 1, 2, \dots, M
 		\end{equation*}
 	\end{itemize}
 \end{frame}
@@ -274,7 +274,7 @@
 
 \begin{frame}[shrink]{Ước lượng điểm số cho phương trình SDE}
 	\begin{itemize}
-		\item Để ước lượng $\nabla_{\bold{x}} \log p_t(\bold{x})$, ta có thể huấn luyện một mô hình dựa trên điểm số phụ thuộc vào thời gian $\bold{s}_{\boldsymbol{\theta}}(\bold{x}, t)$ thông qua một tổng quát hóa liên tục từ phương trình \ref{eq:1} và phương trình \ref{eq:3}:
+		\item Để ước lượng $\nabla_{\bold{x}} \log p_t(\bold{x})$, ta có thể huấn luyện một mô hình dựa trên điểm số phụ thuộc vào thời gian $\bold{s}_{\boldsymbol{\theta}}(\bold{x}, t)$ thông qua một tổng quát hóa liên tục từ công thức \ref{eq:1} và công thức \ref{eq:3}:
 		\begin{equation} \label{eq:7}
 			\boldsymbol{\theta}^{\ast} = \underset{\boldsymbol{\theta}}{\mathrm{argmin}} \mathbb{E}_t \Big \lbrace  \lambda(t) \mathbb{E}_{\bold{x}(0)} \mathbb{E}_{\bold{x}(t) \vert \bold{x}(0)} \big \lbrack \lVert \bold{s}_{\boldsymbol{\theta}} (\bold{x}(t), t) - \nabla_{\bold{x}(t)} \log p_{0t} (\bold{x}(t) \vert \bold{x}(0)) \rVert_2^2 \big \rbrack \Big \rbrace
 		\end{equation}
@@ -310,7 +310,7 @@
 		\begin{equation} \label{eq:10}
 			\bold{x}_i = \sqrt{1 - \beta_i} \bold{x}_{i-1} + \sqrt{\beta_i} \bold{z}_{i-1}, i=1,\dots,N
 		\end{equation}
-		\item Khi $N \rightarrow \infty$, phương trình \ref{eq:10} hội tụ về phương trình SDE:
+		\item Khi $N \rightarrow \infty$, công thức \ref{eq:10} hội tụ về phương trình SDE:
 		\begin{equation} \label{eq:11}
 			d \bold{x} = \dfrac{1}{2} \beta(t) \bold{x} dt + \sqrt{\beta(t)} d\bold{w}
 		\end{equation}
@@ -627,7 +627,7 @@
 		\begin{equation*}
 			d \bold{x} = \big \lbrack \bold{f}(\bold{x}, t) - g(t)^2 \nabla_{\bold{x}} \log p_t (\bold{x}) \big \rbrack dt + g(t) d \hat{\bold{w}}
 		\end{equation*}
-		\item Để ước lượng $\nabla_{\bold{x}} \log p_t(\bold{x})$, ta có thể huấn luyện một mô hình dựa trên điểm số phụ thuộc vào thời gian $\bold{s}_{\boldsymbol{\theta}}(\bold{x}, t)$ thông qua một tổng quát hóa liên tục từ phương trình \ref{eq:1} và phương trình \ref{eq:3}:
+		\item Để ước lượng $\nabla_{\bold{x}} \log p_t(\bold{x})$, ta có thể huấn luyện một mô hình dựa trên điểm số phụ thuộc vào thời gian $\bold{s}_{\boldsymbol{\theta}}(\bold{x}, t)$ thông qua một tổng quát hóa liên tục từ công thức \ref{eq:1} và công thức \ref{eq:3}:
 		\begin{equation*}
 			\boldsymbol{\theta}^{\ast} = \underset{\boldsymbol{\theta}}{\mathrm{argmin}} \mathbb{E}_t \Big \lbrace  \lambda(t) \mathbb{E}_{\bold{x}(0)} \mathbb{E}_{\bold{x}(t) \vert \bold{x}(0)} \big \lbrack \lVert \bold{s}_{\boldsymbol{\theta}} (\bold{x}(t), t) - \nabla_{\bold{x}(t)} \log p_{0t} (\bold{x}(t) \vert \bold{x}(0)) \rVert_2^2 \big \rbrack \Big \rbrace
 		\end{equation*}
