@@ -147,6 +147,18 @@
 
 \section{Tổng quan mô hình sinh dựa trên điểm số}
 
+\begin{frame}{Tổng quan mô hình khuếch tán}
+	Quá trình khuếch tán gồm hai quá trình:
+	\begin{itemize}
+		\item Quá trình khuếch tán thuận: nhiễu được từ từ thêm vào dữ liệu qua từng bước cho đến khi dữ liệu trở thành nhiễu có phân phối Gaussian tiêu chuẩn
+		\item Quá trình khuếch tán ngược (quá trình khử nhiễu): sử dụng một mô hình được huấn luyện đảo ngược quá trình thuận (từ nhiễu trở thành dữ liệu)
+	\end{itemize}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.9\linewidth]{figures/Fixed_Forward_Diffusion_Process.png}
+	\end{figure}
+\end{frame}
+
 \begin{frame}{Tổng quan mô hình sinh dựa trên điểm số}
 	\begin{itemize}
 		\item Mô hình sinh dựa trên điểm số là các mô hình tạo ra dữ liệu cần thông tin về gradient của $\log$ hàm mật độ xác suất $p_t(\bold{x}_t)$
@@ -264,7 +276,7 @@
 	\begin{itemize}
 		\item Để ước lượng $\nabla_{\bold{x}} \log p_t(\bold{x})$, ta có thể huấn luyện một mô hình dựa trên điểm số phụ thuộc vào thời gian $\bold{s}_{\boldsymbol{\theta}}(\bold{x}, t)$ thông qua một tổng quát hóa liên tục từ phương trình \ref{eq:1} và phương trình \ref{eq:3}:
 		\begin{equation} \label{eq:7}
-			\boldsymbol{\theta}^{\ast} = \underset{\boldsymbol{\theta}}{\mathrm{argmin}} \mathbb{E}_t \Big \lbrace  \lambda(t) \mathbb{E}_{\bold{x}(0)} \mathbb{E}_{\bold{x}(t) \vert \bold{x}(0)} \big \lbrack \lVert \bold{s}_{\boldsymbol{\theta}} (\bold{x}(t), t) - \nabla_{\bold{x}(t)} \log p_{0t} (\bold{x}(t) \vert \bold{x}(0)) \rVert_2^2 \big \lbrack \Big \rbrace
+			\boldsymbol{\theta}^{\ast} = \underset{\boldsymbol{\theta}}{\mathrm{argmin}} \mathbb{E}_t \Big \lbrace  \lambda(t) \mathbb{E}_{\bold{x}(0)} \mathbb{E}_{\bold{x}(t) \vert \bold{x}(0)} \big \lbrack \lVert \bold{s}_{\boldsymbol{\theta}} (\bold{x}(t), t) - \nabla_{\bold{x}(t)} \log p_{0t} (\bold{x}(t) \vert \bold{x}(0)) \rVert_2^2 \big \rbrack \Big \rbrace
 		\end{equation}
 		với $\lambda: \lbrace 0, T \rbrace \rightarrow \mathbb{R}_{>0}$ là một hàm trọng số dương,
 		$t$ được lấy mẫu theo phân phối đều trên đoạn $\lbrace 0, T \rbrace$, $\bold{x}(0) \sim p_0 (\bold{x})$ và $\bold{x}(t) \sim p_{0t} (\bold{x}(t) \vert \bold{x}(0))$.
@@ -356,8 +368,267 @@
 	sao cho hai quỹ đạo này chia sẻ cùng một hàm mật độ xác suất cận biên $\lbrace p_t (\bold{x}) \rbrace_{t=0}^T$. Được minh họa ở hình \ref{fig:2}.
 \end{frame}
 
-\begin{frame}{Tính toán độ hợp lý}
-	
+\begin{frame}[shrink]{Tính toán độ hợp lý}
+	\begin{itemize}
+		\item Dòng xác suất của phương trình ODE sau khi ta thế điểm số $\nabla_{\bold{x}} \log p_t (\bold{x})$ với mô hình dựa trên điểm số phụ thuộc vào thời gian $\bold{s}_{\bold{\theta}}(\bold{x}, t)$:
+		\begin{equation} \label{eq:38}
+			d \bold{x} = \underbrace{\Bigg \lbrace \bold{f}(\bold{x}, t) - \dfrac{1}{2} \nabla . \lbrace \bold{G}(\bold{x}, t) \bold{G}(\bold{x}, t)^T - \dfrac{1}{2} \bold{G}(\bold{x}, t) \bold{G}(\bold{x}, t)^T \bold{s}_{\bold{\theta}} (\bold{x}, t) \rbrace \Bigg \rbrace}_{=: \tilde{\bold{f}}(\bold{x}, t)} dt
+		\end{equation}
+		\item Với công thức đổi biến trong \citep{chen2018neural}, ta có thể tính log của độ hợp lý $p_0 (\bold{x})$ sử dụng:
+		\begin{equation} \label{eq:39}
+			\log p_0 (\bold{x}(0)) = \log p_T (\bold{x}(T)) + \int_{0}^{T} \nabla . \tilde{\bold{f}}(\bold{x}(t), t) dt
+		\end{equation}
+		với biến ngẫu nhiên $\bold{x}(t)$ là một hàm của $t$ có thể thu được bằng cách giải dòng xác suất phương trình ODE.
+		\item Việc tính $\nabla . \tilde{\bold{f}}_{\bold{\theta}}(\bold{x}, t)$ có chi phí tính toán khá đắt, ta sử dụng ước lượng Skilling - Hutchinson  (ước lượng không chệch) \citep{skilling1989eigenvalues,hutchinson1989stochastic}:
+		\begin{equation} \label{eq:40}
+			\nabla . \tilde{\bold{f}}_{\bold{\theta}}(\bold{x}, t) = \mathbb{E}_{p(\boldsymbol{\epsilon})} \lbrack \boldsymbol{\epsilon}^T \nabla \tilde{\bold{f}}_{\bold{\theta}} (\bold{x}, t) \boldsymbol{\epsilon} \rbrack
+		\end{equation}
+		với $\nabla \tilde{\bold{f}}_{\bold{\theta}}$ ký hiệu là ma trận Jacobi của $\tilde{\bold{f}}(., t)$ và biến ngẫu nhiên $\boldsymbol{\epsilon}$ thỏa mãn $\mathbb{E}_{p(\boldsymbol{\epsilon})} \lbrack \boldsymbol{\epsilon} \rbrack = \bold{0}$ và $\mathrm{Cov}_{p(\boldsymbol{\epsilon})} \lbrack \boldsymbol{\epsilon} \rbrack = \bold{I}$.
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Biểu diễn trên không gian ẩn}
+	\begin{itemize}
+		\item Ta có thể mã hóa bất kỳ điểm dữ liệu $\bold{x}(0)$ nào vào một không gian ẩn $\bold{x}(T)$ sử dụng phương trình ODE ngược với phương trình ODE dòng xác suất ở công thức \ref{eq:13}.
+		\item Ta có thể thao tác biểu diễn ẩn này cho các ứng dụng chỉnh sửa ảnh
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Lấy mẫu dòng xác suất ODE}
+	\begin{itemize}
+		\item Quá trình lấy mẫu là tất định (mỗi điểm dữ liệu mẫu từ phân phối tiên nghiệm $p_T$ chỉ tương ứng với một điểm dữ liệu trên phân phối $p_0$)
+		\item Công thức lấy mẫu cho SMLD:
+		\begin{equation} \label{eq:43}
+			\bold{x}_i = \bold{x}_{i+1} + \dfrac{1}{2} (\sigma_{i+1}^2 - \sigma_i^2) \bold{s}_{\bold{\theta}^{\ast}} (\bold{x}_{i+1}, \sigma_{i+1}), i = 0, 1, \dots, N - 1
+		\end{equation}
+		\item Công thức lấy mẫu cho DDPM:
+		\begin{equation} \label{eq:44}
+			\bold{x}_i = (2 - \sqrt{1 - \beta_{i+1}}) \bold{x}_{i+1} + \dfrac{1}{2} \beta_{i+1} \bold{s}_{\bold{\theta}^{\ast}} (\bold{x}_{i+1}, i + 1), i = 0, 1, \dots, N - 1
+		\end{equation}
+		\item Hoặc có thể sử dụng bộ giải bằng phương pháp Runge - Kutta 45
+	\end{itemize}
+\end{frame}
+
+\section{Sinh mẫu có điều khiển}
+
+\begin{frame}{Sinh mẫu có điều khiển}
+	\begin{itemize}
+		\item Khi được cho trước một phương trình SDE thuận trong công thức \ref{eq:5}, ta có thể lấy mẫu từ $p_t(\bold{x}(t) \vert \bold{y})$ bằng cách bắt đầu từ $p_T (\bold{x}(T) \vert \bold{y})$ và giải phương trình SDE đảo ngược thời gian có điều kiện:
+
+		\begin{equation} \label{eq:14}
+			d \bold{x} = \lbrace \bold{f}(\bold{x}, t) - g (t)^2 \lbrack \nabla_{\bold{x}} \log p_t(\bold{x}) + \nabla_{\bold{x}} \log p_t (\bold{y} \vert \bold{x}) \rbrack \rbrace dt + g(t) d \bar{\bold{w}}
+		\end{equation}
+	\end{itemize}
+\end{frame}
+
+\section{Các thuật toán sinh mẫu cho VE SDE, VP SDE}
+
+\begin{frame}{Thuật toán sinh mẫu tổng quát}
+	\begin{algorithm}[H]
+		\DontPrintSemicolon
+		\KwIn{$N$: số bước rời rạc hóa cho phương trình SDE đảo ngược thời gian, $M$: số bước hiệu chỉnh}
+		Khởi tạo $\bold{x}_N \sim p_T(\bold{x})$\;
+		\For {$i \gets N - 1$ \KwSty{to} 0} {
+			$\bold{x}_i \gets$ Predictor($\bold{x}_{i+1}$)\;
+			\For {$j \gets 1$ \KwSty{to} M} {
+				$\bold{x}_i \gets$ Corrector($\bold{x}_i$)\;
+			}
+		}
+		\Return{$\bold{x}_0$}\;
+		\caption{Bộ lấy mẫu dự đoán - hiệu chỉnh (PC)}
+		\label{alg:1}
+	\end{algorithm}
+\end{frame}
+
+\begin{frame}{Thuật toán lấy mẫu PC cho VE SDE}
+	\begin{algorithm}[H]
+		\DontPrintSemicolon
+		$\bold{x}_N \sim \mathcal{N}(\bold{0}, \sigma_{\max}^2 \bold{I})$\;
+		\For {$i \gets N - 1$ \KwSty{to} 0} {
+			$\bold{x}_i^{\prime} \gets \bold{x}_{i+1} + (\sigma_{i+1}^2 - \sigma_i^2)\bold{s}_{\boldsymbol{\theta}}^{\ast}(\bold{x}_{i+1}, \sigma_{i+1})$\;
+			$\bold{z} \sim \mathcal{N}(\bold{0}, \bold{I})$\;
+			$\bold{x}_i \gets \bold{x}_i^{\prime} + \sqrt{\sigma_{i+1}^2 - \sigma_i^2} \bold{z}$\;
+			\For{$j \gets 1$ \KwSty{to} $M$} {
+				$\bold{z} \gets \mathcal{N}(\bold{0}, \bold{I})$\;
+				$\bold{x}_i \gets \bold{x}_i + \epsilon_i \bold{s}_{\boldsymbol{\theta}^{\ast}}(\bold{x}_i, \sigma_i) + \sqrt{2 \epsilon_i} \bold{z}$\;
+			}
+		}
+		\Return{$\bold{x}_0$}\;
+		\caption{Lấy mẫu PC (VE SDE)}
+		\label{alg:2}
+	\end{algorithm}
+\end{frame}
+
+\begin{frame}{Thuật toán lấy mẫu PC cho VP SDE}
+	\begin{algorithm}[H]
+		\DontPrintSemicolon
+		$\bold{x}_N \sim \mathcal{N}(\bold{0}, \bold{I})$\;
+		\For {$i \gets N - 1$ \KwSty{to} 0} {
+			$\bold{x}_i^{\prime} \gets (2 - \sqrt{1 - \beta_{i+1}}) \bold{x}_{i+1} + \beta_{i+1} \bold{s}_{\boldsymbol{\theta}^{\ast}}(\bold{x}_{i+1}, i+1)$\;
+			$\bold{z} \sim \mathcal{N}(\bold{0}, \bold{I})$\;
+			$\bold{x}_i \gets \bold{x}_i^{\prime} + \sqrt{\beta_{i+1}} \bold{z}$\;
+			\For{$j \gets 1$ \KwSty{to} $M$} {
+				$\bold{z} \gets \mathcal{N}(\bold{0}, \bold{I})$\;
+				$\bold{x}_i \gets \bold{x}_i + \epsilon_i \bold{s}_{\boldsymbol{\theta}^{\ast}}(\bold{x}_i, \sigma_i) + \sqrt{2 \epsilon_i} \bold{z}$\;
+			}
+		}
+		\Return{$\bold{x}_0$}\;
+		\caption{Lấy mẫu PC (VP SDE)}
+		\label{alg:3}
+	\end{algorithm}
+\end{frame}
+
+\begin{frame}{Thuật toán lấy mẫu cho VE SDE chỉ sử dụng hiệu chỉnh}
+	\begin{algorithm}[H]
+		\DontPrintSemicolon
+		\KwIn{$\lbrace \sigma_i \rbrace_{i=1}^N, r, N, M$}
+		$\bold{x}_N^0 \sim \mathcal{N}(\bold{0}, \sigma_{\max}^2 \bold{I})$\;
+		\For{$i \gets N$ \KwSty{to} 1} {
+			\For{$j \gets 1$ \KwSty{to} $M$} {
+				$\bold{z} \gets  \mathcal{N}(\bold{0}, \bold{I})$\;
+				$\bold{g} \gets \bold{s}_{\boldsymbol{\theta}^{\ast}}(\bold{x}_i^{j-1}, \sigma_i)$\;
+				$\epsilon \gets 2 (r \lVert \bold{z} \rVert_2 / \lVert g \rVert_2)^2$\;
+				$\bold{x}_i^j \gets \bold{x}_i^{j-1} + \epsilon \bold{g} + \sqrt{2 \epsilon} \bold{z}$\;
+			}
+			$\bold{x}_{i-1}^0 \gets \bold{x}_i^M$\;
+		}
+		\Return{$\bold{x}_0^0$}\;
+		\caption{Thuật toán hiệu chỉnh (VE SDE)}
+		\label{alg:4}
+	\end{algorithm}
+\end{frame}
+
+\begin{frame}{Thuật toán lấy mẫu cho VP SDE chỉ sử dụng hiệu chỉnh}
+	\begin{algorithm}[H]
+		\DontPrintSemicolon
+		\KwIn{$\lbrace \sigma_i \rbrace_{i=1}^N, r, N, M$}
+		$\bold{x}_N^0 \sim \mathcal{N}(\bold{0}, \bold{I})$\;
+		\For{$i \gets N$ \KwSty{to} 1} {
+			\For{$j \gets 1$ \KwSty{to} $M$} {
+				$\bold{z} \gets  \mathcal{N}(\bold{0}, \bold{I})$\;
+				$\bold{g} \gets \bold{s}_{\boldsymbol{\theta}^{\ast}}(\bold{x}_i^{j-1}, i)$\;
+				$\epsilon \gets 2 \alpha_i (r \lVert \bold{z} \rVert_2 / \lVert g \rVert_2)^2$\;
+				$\bold{x}_i^j \gets \bold{x}_i^{j-1} + \epsilon \bold{g} + \sqrt{2 \epsilon} \bold{z}$\;
+			}
+			$\bold{x}_{i-1}^0 \gets \bold{x}_i^M$\;
+		}
+		\Return{$\bold{x}_0^0$}\;
+		\caption{Thuật toán hiệu chỉnh (VP SDE)}
+		\label{alg:5}
+	\end{algorithm}
+\end{frame}
+
+\section{Kết quả thực nghiệm}
+
+\begin{frame}{Kết quả thực nghiệm}
+	\begin{table}[H]
+		\centering
+		\caption{So sánh các bộ giải phương trình SDE đảo ngược thời gian khác nhau trên tập CIFAR-10.
+		Vùng tối màu thu được với cùng cách tính toán (số các hàm điểm số).
+		Trung bình và độ lệch tiêu chuẩn được đưa ra trên 5 lần chạy.
+		"P1000" hoặc "P2000": bộ lấy mẫu mà chỉ dự đoán sử dụng 1000 hoặc 2000 bước.
+		"C2000": bộ lấy mẫu chỉ hiệu chỉnh sử dụng 2000 bước.
+		"PC1000": Bộ lấy mẫu dự đoán hiệu chỉnh sử dụng 1000 bước dự đoán và 1000 bước hiệu chỉnh.}
+		\resizebox{\columnwidth}{!}{
+			\begin{tabular}{c|c|c|c|c|c|c|c|c}
+				\hline
+				& \multicolumn{4}{|c|}{Variance Exploding SDE (SMLD)} & \multicolumn{4}{|c}{Variance Preserving SDE (DDPM)} \\
+				\hline
+				FID $\downarrow$ & P1000 & P2000 & C2000 & PC1000 & P1000 & P2000 & C2000 & PC1000 \\
+				\hline
+				ancestral sampling & 4.98 $\pm$ .06 & 4.88 $\pm$ .06 & \multirow{3}{*}{20.43 $\pm$ .07} & \textbf{3.62} $\pm$ \textbf{.03} & 3.24 $\pm$  .02 & 3.24 $\pm$ .02 & \multirow{3}{*}{19.06 $\pm$ .06} & \textbf{3.21} $\pm$ \textbf{.02} \\
+				reverse diffusion & 4.79 $\pm$ .07 & 4.74 $\pm$ .08 & & \textbf{3.60} $\pm$ \textbf{.02} & 3.21 $\pm$  .02 & 3.19 $\pm$ .02 & & \textbf{3.18} $\pm$ \textbf{.01} \\
+				probability flow & 15.41 $\pm$ .15 & 10.54 $\pm$ .08 & & \textbf{3.51} $\pm$ \textbf{.04} & 3.59 $\pm$  .04 & 3.23 $\pm$ .03 & & \textbf{3.06} $\pm$ \textbf{.03} \\
+				\hline
+			\end{tabular}
+		}
+		\label{tab:1}
+	\end{table}
+\end{frame}
+
+\begin{frame}[shrink]{Kết quả thực nghiệm}
+	\begin{table}[H]
+		\centering
+		\caption{NLLs và FIDs (ODE) trên tập CIFAR-10}
+		\begin{tabular}{lcc}
+			\hline
+			Model & NLL Test $\downarrow$ & FID $\downarrow$ \\
+			\hline
+			RealNVP \citep{dinh2016density} & 3.49 & - \\
+			iResNet \citep{behrmann2019invertible} & 3.45 & - \\
+			Glow \citep{kingma2018glow} & 3.35 & - \\
+			MintNet \citep{song2019mintnet} & 3.32 & - \\
+			Residual Flow \citep{chen2019residual} & 3.28 & 46.37 \\
+			FFJORD \citep{grathwohl2018ffjord} & 3.40 & - \\
+			Flow++ \citep{ho2019flow++} & 3.29 & - \\
+			DDPM (L) \citep{ho2020denoising} & $\leq 3.70^{\ast}$  & 13.51 \\
+			DDPM ($L_{\mathrm{simple}}$) \citep{ho2020denoising} & $\leq 3.75^{\ast}$ & 3.17 \\
+			\hline
+			DDPM & 3.28 & 3.37 \\
+			DDPM cont. (VP) & 3.21 & 3.69 \\
+			DDPM cont. (sub-VP) & 3.05 & 3.56 \\
+			DDPM++ cont. (VP) & 3.16 & 3.93 \\
+			DDPM++ cont. (sub-VP) & 3.02 & 3.16 \\
+			DDPM++ cont. (deep, VP) & 3.13 & 3.08 \\
+			DDPM++ cont. (deep, sub-VP) & \textbf{2.99} & \textbf{2.92} \\
+			\hline
+		\end{tabular}
+		\label{tab:2}
+	\end{table}
+\end{frame}
+
+\begin{frame}[shrink]{Kết quả thực nghiệm}
+	\begin{table}[H]
+		\centering
+		\caption{Chất lượng các mẫu trên tập CIFAR-10}
+		\begin{tabular}{lcc}
+			\hline
+			Model & FID $\downarrow$ & IS $\uparrow$ \\
+			\hline
+			\textbf{Conditional} & & \\
+			BigGAN \citep{brock2018large} &  14.73 & 9.22 \\
+			StyleGAN2-ADA \citep{karras2020training} & \textbf{2.42} & \textbf{10.14} \\
+			\hline
+			\textbf{Unconditional} & & \\
+			StyleGAN2-ADA \citep{karras2020training} & 2.92 & 9.83 \\
+			NCNS \citep{song2019generative} & 25.32 & 8.87 $\pm$ .12 \\
+			NCNSv2 \citep{song2020improved} & 10.87 & 8.40 $\pm$ .07 \\
+			DDPM \citep{ho2020denoising} & 3.17 & 9.46 $\pm$ .11 \\
+			\hline
+			DDPM++ & 2.78 & 9.64 \\
+			DDPM++ cont. (VP) & 2.55 & 9.58 \\
+			DDPM++ cont. (sub-VP) & 2.61 & 9.56 \\
+			DDPM++ cont. (deep, VP) & 2.41 & 9.68 \\
+			DDPM++ cont. (deep, sub-VP) & 2.41 & 9.57 \\
+			NCSN++ & 2.45 & 9.73 \\
+			NCSN++ cont. (VE) & 2.38 & 9.83 \\
+			NCSN++ cont. (deep, VE) & \textbf{2.20} & \textbf{9.89} \\
+			\hline
+		\end{tabular}
+		\label{tab:3}
+	\end{table}
+\end{frame}
+
+\section{Tổng kết}
+
+\begin{frame}[shrink]{Tổng kết}
+	Các ý chính trong bài báo:
+	\begin{itemize}
+		\item Quá trình khuếch tán thuận được thực hiện bởi một phương trình vi phân SDE:
+		\begin{equation*}
+			d \bold{x} = \bold{f} (\bold{x}, t) dt + g(t) d \bold{w}
+		\end{equation*}
+		\item Sinh mẫu dữ liệu phương trình SDE đảo ngược thời gian:
+		\begin{equation*}
+			d \bold{x} = \big \lbrack \bold{f}(\bold{x}, t) - g(t)^2 \nabla_{\bold{x}} \log p_t (\bold{x}) \big \rbrack dt + g(t) d \hat{\bold{w}}
+		\end{equation*}
+		\item \item Để ước lượng $\nabla_{\bold{x}} \log p_t(\bold{x})$, ta có thể huấn luyện một mô hình dựa trên điểm số phụ thuộc vào thời gian $\bold{s}_{\boldsymbol{\theta}}(\bold{x}, t)$ thông qua một tổng quát hóa liên tục từ phương trình \ref{eq:1} và phương trình \ref{eq:3}:
+		\begin{equation*}
+			\boldsymbol{\theta}^{\ast} = \underset{\boldsymbol{\theta}}{\mathrm{argmin}} \mathbb{E}_t \Big \lbrace  \lambda(t) \mathbb{E}_{\bold{x}(0)} \mathbb{E}_{\bold{x}(t) \vert \bold{x}(0)} \big \lbrack \lVert \bold{s}_{\boldsymbol{\theta}} (\bold{x}(t), t) - \nabla_{\bold{x}(t)} \log p_{0t} (\bold{x}(t) \vert \bold{x}(0)) \rVert_2^2 \big \rbrack \Big \rbrace
+		\end{equation*}
+		\item Giải phương trình vi phân SDE đảo ngược thời gian bằng một số phương pháp giải: Euler - Maruyama, Runge - Kutta
+		\item Trong mỗi bước lặp để giải phương trình vi phân SDE đảo ngược thời gian, có thể sử dụng bước chỉnh định, ví dụ Langevin MCMC.
+	\end{itemize}
 \end{frame}
 
 \section{Tài liệu tham khảo}
